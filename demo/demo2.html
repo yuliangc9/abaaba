@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吃豆豆游戏</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(10, 30px);
+            gap: 1px;
+            background-color: #ccc;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            background-color: white;
+        }
+
+        .panda {
+            width: 30px;
+            height: 30px;
+            background-image: url('./tuboshu.gif');
+            background-size: cover;
+        }
+
+        .food {
+            width: 30px;
+            height: 30px;
+            background-size: cover;
+        }
+
+        #bean-boxes {
+            display: flex;
+            margin-top: 20px;
+        }
+
+        .bean-box {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            margin: 0 5px;
+            background-size: cover;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+
+        #restart-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+        }
+
+        #energy-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.2;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .blink {
+            animation: blink 0.5s ease-in-out 2;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="energy-display">能量值: 1</div>
+    <div id="game-board"></div>
+    <div id="bean-boxes">
+        <div class="bean-box"></div>
+        <div class="bean-box"></div>
+        <div class="bean-box"></div>
+        <div class="bean-box"></div>
+        <div class="bean-box"></div>
+    </div>
+    <div id="message"></div>
+    <button id="restart-button" style="display: none;">重新开始</button>
+    <script>
+        const board = document.getElementById('game-board');
+        const beanBoxes = document.querySelectorAll('.bean-box');
+        const message = document.getElementById('message');
+        const restartButton = document.getElementById('restart-button');
+        const energyDisplay = document.getElementById('energy-display');
+        const rows = 10;
+        const cols = 10;
+        let pacmanX = Math.floor(cols / 2);
+        let pacmanY = Math.floor(rows / 2);
+        let beans = [];
+        let eatenBeans = [];
+        let energy = 1; // 初始能量值
+        const foods = [
+            { name: 'carrot', image: './apple.png', energy: 3 },
+            { name: 'bamboo', image: './baicai.png', energy: 3 },
+            { name: 'onion', image: './bingqilin.png', energy: 3 },
+            { name: 'apple', image: './caomei.png', energy: 3 },
+            { name: 'banana', image: './banana.png', energy: 3 },
+            { name: 'strawberry', image: './guozhi.png', energy: 3 },
+            { name: 'grape', image: './huluobo.png', energy: 3 },
+            { name: 'watermelon', image: './lanmei.png', energy: 3 },
+            { name: 'pear', image: './mangguo.png', energy: 3 },
+            { name: 'kiwi', image: './mihoutao.png', energy: 3 },
+            { name: 'lemon', image: './shanzhu.png', energy: 3 },
+            { name: 'cherry', image: './tudou.png', energy: 3 },
+            { name: 'orange', image: './xigua.png', energy: 3 }
+        ];
+        const beanCountPerColor = 3;
+
+        function createBoard() {
+            const allCells = [];
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    board.appendChild(cell);
+                    if (x!== pacmanX || y!== pacmanY) {
+                        allCells.push({ x, y, cell });
+                    }
+                }
+            }
+
+            // 打乱单元格顺序
+            shuffleArray(allCells);
+
+            let currentFoodIndex = 0;
+            for (let i = 0; i < allCells.length; i++) {
+                const { x, y, cell } = allCells[i];
+                const food = document.createElement('div');
+                food.classList.add('food');
+                const currentFood = foods[currentFoodIndex];
+                food.style.backgroundImage = `url('${currentFood.image}')`;
+                cell.appendChild(food);
+                beans.push({ x, y, food: currentFood.name, energy: currentFood.energy });
+
+                // 每三个相同食物后更换食物种类
+                if ((i + 1) % beanCountPerColor === 0) {
+                    currentFoodIndex = (currentFoodIndex + 1) % foods.length;
+                }
+            }
+
+            const pacmanCell = document.querySelector(`[data-x="${pacmanX}"][data-y="${pacmanY}"]`);
+            pacmanCell.classList.add('panda');
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function movePacman(dx, dy) {
+            if (energy <= 0) return; // 能量值为0时无法移动
+            const newX = pacmanX + dx;
+            const newY = pacmanY + dy;
+            if (newX >= 0 && newX < cols && newY >= 0 && newY < rows) {
+                const newCell = document.querySelector(`[data-x="${newX}"][data-y="${newY}"]`);
+                const food = newCell.querySelector('.food');
+                if (!food || canEatBean()) {
+                    const currentCell = document.querySelector(`[data-x="${pacmanX}"][data-y="${pacmanY}"]`);
+                    currentCell.classList.remove('panda');
+                    pacmanX = newX;
+                    pacmanY = newY;
+                    newCell.classList.add('panda');
+                    energy--; // 移动消耗能量
+                    updateEnergyDisplay();
+                    if (food) {
+                        const bean = beans.find(b => b.x === newX && b.y === newY);
+                        const foodName = bean.food;
+                        eatBean(foodName, bean.energy);
+                        newCell.removeChild(food);
+                        beans = beans.filter(b => b.x!== newX || b.y!== newY);
+                        checkWin();
+                    }
+                }
+            }
+        }
+
+        function canEatBean() {
+            return eatenBeans.length < beanBoxes.length;
+        }
+
+        function eatBean(foodName, foodEnergy) {
+            eatenBeans.push(foodName);
+            const emptyBox = Array.from(beanBoxes).find(box =>!box.style.backgroundImage);
+            const foodImage = foods.find(f => f.name === foodName).image;
+            emptyBox.style.backgroundImage = `url('${foodImage}')`;
+            energy += foodEnergy; // 累加能量值
+            updateEnergyDisplay();
+            checkThreeSameColor();
+        }
+
+        function checkThreeSameColor() {
+            const foodCount = {};
+            eatenBeans.forEach(food => {
+                foodCount[food] = (foodCount[food] || 0) + 1;
+            });
+
+            let hasRemoved = false;
+            for (const food in foodCount) {
+                if (foodCount[food] === 3) {
+                    // 清除 eatenBeans 中的相同食物
+                    eatenBeans = eatenBeans.filter(f => f!== food);
+
+                    // 闪烁动画
+                    const boxesToRemove = [];
+                    beanBoxes.forEach(box => {
+                        const imageUrl = box.style.backgroundImage.replace(/url\(['"]?([^'"]+)['"]?\)/, '$1');
+                        const foundFood = foods.find(f => f.image === imageUrl);
+                        if (foundFood && foundFood.name === food) {
+                            boxesToRemove.push(box);
+                            box.classList.add('blink');
+                        }
+                    });
+
+                    // 等待动画完成后清除
+                    setTimeout(() => {
+                        boxesToRemove.forEach(box => {
+                            box.style.backgroundImage = '';
+                            box.classList.remove('blink');
+                        });
+                    }, 1000);
+
+                    hasRemoved = true;
+                }
+            }
+
+            if (hasRemoved) {
+                for (let i = 0; i < 2; i++) {
+                    generateNewFood();
+                }
+            }
+        }
+
+        function generateNewFood() {
+            const validPositions = [];
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                    const hasFood = cell.querySelector('.food');
+                    if (!hasFood) {
+                        const neighbors = [
+                            { x: x - 1, y },
+                            { x: x + 1, y },
+                            { x, y: y - 1 },
+                            { x, y: y + 1 }
+                        ];
+                        for (const neighbor of neighbors) {
+                            if (neighbor.x >= 0 && neighbor.x < cols && neighbor.y >= 0 && neighbor.y < rows) {
+                                const neighborCell = document.querySelector(`[data-x="${neighbor.x}"][data-y="${neighbor.y}"]`);
+                                if (neighborCell.querySelector('.food')) {
+                                    validPositions.push({ x, y });
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (validPositions.length > 0) {
+                const randomIndex = Math.floor(Math.random() * validPositions.length);
+                const { x, y } = validPositions[randomIndex];
+                const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                const food = document.createElement('div');
+                food.classList.add('food');
+                const randomFood = foods[Math.floor(Math.random() * foods.length)];
+                food.style.backgroundImage = `url('${randomFood.image}')`;
+
+                // 新生成豆豆闪烁动画
+                food.classList.add('blink');
+                cell.appendChild(food);
+                beans.push({ x, y, food: randomFood.name, energy: randomFood.energy });
+
+                // 移除闪烁类
+                setTimeout(() => {
+                    food.classList.remove('blink');
+                }, 1000);
+            }
+        }
+
+        function checkWin() {
+            if (beans.length === 0) {
+                message.textContent = '恭喜通关！';
+                restartButton.style.display = 'block';
+            }
+        }
+
+        function updateEnergyDisplay() {
+            energyDisplay.textContent = `能量值: ${energy}`;
+        }
+
+        document.addEventListener('keydown', function (event) {
+            switch (event.key) {
+                case 'ArrowUp':
+                    movePacman(0, -1);
+                    break;
+                case 'ArrowDown':
+                    movePacman(0, 1);
+                    break;
+                case 'ArrowLeft':
+                    movePacman(-1, 0);
+                    break;
+                case 'ArrowRight':
+                    movePacman(1, 0);
+                    break;
+            }
+        });
+
+        restartButton.addEventListener('click', function () {
+            board.innerHTML = '';
+            beanBoxes.forEach(box => box.style.backgroundImage = '');
+            message.textContent = '';
+            restartButton.style.display = 'none';
+            pacmanX = Math.floor(cols / 2);
+            pacmanY = Math.floor(rows / 2);
+            beans = [];
+            eatenBeans = [];
+            energy = 1; // 重置能量值
+            updateEnergyDisplay();
+            createBoard();
+        });
+
+        createBoard();
+    </script>
+</body>
+
+</html>
