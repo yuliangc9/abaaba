@@ -247,11 +247,11 @@
       "__expectedType__": "cc.SpriteFrame"
     },
     "speedSprite": {
-      "__uuid__": "0da256a2-21f6-481b-90b6-d3643a09179b@f9941",
+      "__uuid__": "158e7e52-3220-4cd7-9694-713e0e6e8278@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "shieldSprite": {
-      "__uuid__": "f12a23c4-b924-4322-a260-3d982428f1e8@f9941",
+      "__uuid__": "b730527c-3233-41c2-aaf7-7cdab58f9749@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_id": ""

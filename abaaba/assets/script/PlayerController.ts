@@ -23,7 +23,7 @@ export class PlayerController extends Component {
     private _accumulatedDistance = 0;
 
     private _joystickComp: any = null;
-    private _mapBoundary = { minX: -300, maxX: 300, minY: -300, maxY: 300 };
+    private _mapBoundary = { minX: -350, maxX: 350, minY: -350, maxY: 350 };
 
     onLoad() {
         this._joystickComp = this.joystick.getComponent('Joystick');
@@ -69,7 +69,7 @@ export class PlayerController extends Component {
             if (leftEnergy <= 0) {
                 // 能量耗尽，停止移动
                 moveDelta.set(0, 0, 0);
-                this.node.active = false;
+                this.setMovementEnabled(false);
                 return;
             }
             this._accumulatedDistance = 0;
@@ -80,5 +80,13 @@ export class PlayerController extends Component {
         newPos.y = Math.max(Math.min(newPos.y, this._mapBoundary.maxY), this._mapBoundary.minY);
         
         this.node.setPosition(newPos);
+    }
+
+    setMovementEnabled(enabled: boolean) {
+        if (enabled) {
+            this.node.active = true;
+        } else {
+            this.node.active = false;
+        }
     }
 }

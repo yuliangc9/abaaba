@@ -36,9 +36,9 @@ export class Bean extends Component {
         }
     }
 
-    setType(typeConfig: any) {
-        this.type = typeConfig.type;
-        this.energyValue = typeConfig.energy;
+    setType(type: BeanType, energyValue: number) {
+        this.type = type;
+        this.energyValue = energyValue;
         const sprite = this.getComponent(Sprite);
         if (sprite) {
             sprite.spriteFrame = this.getCurrentSprite();

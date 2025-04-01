@@ -67,7 +67,7 @@ export class BeanManager extends Component {
             // 假设 Bean 类有 setType 方法，修正类型获取方式
             const beanComp = bean.getComponent(Bean);
             if (beanComp) {
-                beanComp.setType(typeData);
+                beanComp.setType(typeData.type, typeData.energy);
             }
             
             while (!isValidPos && attempts < 10) {            
@@ -85,7 +85,6 @@ export class BeanManager extends Component {
                     this.node.addChild(bean);
                     bean.setPosition(newPos);
                     bean.active = true;
-                    console.log("new bean at", newPos, typeData);
                     this._beans.push(bean);
                 }
                 attempts++;
@@ -93,18 +92,19 @@ export class BeanManager extends Component {
 
         }
         // 新增：通知GameManager总豆豆数
-        const gameManager = this.node.getComponent(GameManager).setTotalBeans(this._beans.length);
+        this.node.getComponent(GameManager).setTotalBeans(this._beans.length);
     }
 
     public removeBean(beanNode: Node) {
+        const energy = beanNode.getComponent(Bean)?.energyValue;
         const index = this._beans.indexOf(beanNode);
         if (index !== -1) {
-            const energy = beanNode.getComponent(Bean)?.energyValue;
+            const beanType = beanNode.getComponent(Bean)?.type;
             beanNode.destroy();
             this._beans.splice(index, 1);
             
             const gameManager = this.node.getComponent(GameManager) as any;
-            gameManager?.beanEaten(energy);
+            if (beanType) gameManager.beanEaten(beanType, energy);
         }
     }
 
