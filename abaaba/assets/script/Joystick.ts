@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, EventTouch, Input, input, Vec2 } from 'cc';
+import { _decorator, Component, Node, EventTouch, Input, input, Vec2, UITransform } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('Joystick')
@@ -8,6 +8,7 @@ export class Joystick extends Component {
     
     private _maxRadius = 50;
     private _inputVector = Vec2.ZERO;
+    private _isActive = false;
     
     onLoad() {
         input.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
@@ -17,14 +18,27 @@ export class Joystick extends Component {
     
     private onTouchStart(event: EventTouch) {
         const touchPos = event.getUILocation();
-        this.node.setWorldPosition(touchPos.x, touchPos.y, 0);
+        // 假设使用 getBoundingBoxToWorld 方法替代 getBoundingBox
+        const nodeRect = this.node.getComponent(UITransform).getBoundingBoxToWorld();
+        
+        if (nodeRect.contains(new Vec2(touchPos.x, touchPos.y))) {
+            this._isActive = true;
+            // 保持摇杆底座位置不变，仅激活状态
+        }
     }
     
     private onTouchMove(event: EventTouch) {
-        const touchPos = event.getUILocation();
-        const stickPos = this.node.worldPosition;
-        const delta = new Vec2(touchPos.x - stickPos.x, touchPos.y - stickPos.y);
+        if (!this._isActive) return;
         
+        const touchPos = event.getUILocation();
+        const stickWorldPos = this.node.worldPosition;
+        
+        // 计算触点与摇杆中心的相对位置
+        const delta = new Vec2(
+            touchPos.x - stickWorldPos.x,
+            touchPos.y - stickWorldPos.y
+        );
+
         if (delta.length() > this._maxRadius) {
             delta.normalize().multiplyScalar(this._maxRadius);
         }
@@ -34,6 +48,7 @@ export class Joystick extends Component {
     }
     
     private onTouchEnd() {
+        this._isActive = false;
         this.stick.setPosition(0, 0, 0);
         this._inputVector = Vec2.ZERO;
     }

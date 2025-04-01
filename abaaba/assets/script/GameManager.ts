@@ -10,17 +10,28 @@ export class GameManager extends Component {
     winLabel: Label = null!;
 
     private _remainingBeans = 0;
+    private _totalEnergy = 50;
+
+    // 新增：减少能量方法
+    public decreaseEnergy(amount: number) : number{
+        this._totalEnergy = Math.max(0, this._totalEnergy - amount);
+        this.updateCountLabel();
+        return this._totalEnergy
+    }
 
     start() {
         this.winLabel.node.active = false;
         this.updateCountLabel();
     }
 
-    public beanEaten() {
+    public beanEaten(energy: number) {
+        console.log('剩余豆豆数量:', this._remainingBeans);
         this._remainingBeans--;
-        this.updateCountLabel();
+        this.addEnergy(energy);
         
+        console.log('更新后剩余:', this._remainingBeans);
         if (this._remainingBeans <= 0) {
+            console.log('触发胜利条件');
             this.showWin();
         }
     }
@@ -30,7 +41,7 @@ export class GameManager extends Component {
     }
 
     private updateCountLabel() {
-        this.countLabel.string = `剩余豆豆: ${this._remainingBeans}`;
+        this.countLabel.string = `能量: ${Math.floor(this._totalEnergy)}`;
     }
 
     private showWin() {
@@ -39,5 +50,11 @@ export class GameManager extends Component {
         this.scheduleOnce(() => {
             window.location.reload();
         }, 2);
+    }
+
+    public addEnergy(energy: number) {
+        this._totalEnergy += energy;
+        console.log('当前累计能量:', this._totalEnergy);
+        this.updateCountLabel();
     }
 }
