@@ -1,6 +1,8 @@
-import { _decorator, Component, Node, Vec3, input, Input, Vec2, Collider, Collider2D, Contact2DType, math } from 'cc';
+import { _decorator, Component, Node, Vec3, Sprite, input, Input, Vec2, Collider, Collider2D, Contact2DType, math, Size, UITransform } from 'cc';
 import { PhysicsSystem2D } from 'cc';
 import { Bean } from './Bean'; // 请根据实际路径修改
+import { GameManager } from './GameManager';
+import { Tween } from 'cc';
 const { ccclass, property } = _decorator;
 
 // 开启物理系统
@@ -29,6 +31,11 @@ export class PlayerController extends Component {
         this._joystickComp = this.joystick.getComponent('Joystick');
     }
 
+    @property(Node)
+    maskSprite: Node = null!;
+
+    private _gameManager: GameManager;
+
     start() {
         const collider = this.getComponent(Collider2D);
         if (collider) {
@@ -37,6 +44,7 @@ export class PlayerController extends Component {
             console.log('1');
             collider.on(Contact2DType.BEGIN_CONTACT, this.onCollisionBegin, this);
         }
+        this._gameManager = this.node.parent.parent.getComponent(GameManager);
     }
 
     onCollisionBegin2(selfCollider: Collider2D, otherCollider: Collider2D) {
@@ -82,7 +90,7 @@ export class PlayerController extends Component {
         
         // 触发能量消耗
         if (true) {
-            const gameManager = this.node.parent?.getComponent('GameManager') as any;
+            const gameManager = this.node.parent.parent.getComponent('GameManager') as any;
             const leftEnergy = gameManager?.decreaseEnergy(this.moveCostPerUnit * this._accumulatedDistance);
             if (leftEnergy <= 0) {
                 // 能量耗尽，停止移动
@@ -98,8 +106,20 @@ export class PlayerController extends Component {
         newPos.y = Math.max(Math.min(newPos.y, this._mapBoundary.maxY), this._mapBoundary.minY);
         
         this.node.setPosition(newPos);
+        
+        // 更新遮罩位置和尺寸
+        this.updateMask();
     }
 
+    private updateMask() {
+        if (!this.maskSprite) return;
+    
+        const targetRadius = this._gameManager.getCurrentEnergy() / this.moveCostPerUnit;
+    
+        // 同步位置
+        this.maskSprite.setPosition(this.node.position);
+        this.maskSprite.getComponent(UITransform).contentSize = new Size(targetRadius * 2, targetRadius * 2);
+    }
     setMovementEnabled(enabled: boolean) {
         if (enabled) {
             this.node.active = true;

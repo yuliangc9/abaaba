@@ -24,7 +24,7 @@ export class GameManager extends Component {
     private _remainingBeans = 0;
     private currentSlots: (BeanType | null)[] = [null, null, null, null, null];
     private readonly MAX_SLOTS = 5;
-    private _totalEnergy = 50;
+    private _totalEnergy = 20;
 
     // 新增：减少能量方法
     public decreaseEnergy(amount: number) : number{
@@ -139,5 +139,9 @@ export class GameManager extends Component {
         this._totalEnergy += energy;
         console.log('当前累计能量:', this._totalEnergy);
         this.updateCountLabel();
+    }
+
+    public getCurrentEnergy() {
+      return this._totalEnergy;
     }
 }

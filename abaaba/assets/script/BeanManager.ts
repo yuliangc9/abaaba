@@ -114,7 +114,7 @@ export class BeanManager extends Component {
 
         }
         // 新增：通知GameManager总豆豆数
-        this.node.getComponent(GameManager).setTotalBeans(this._beans.length);
+        this.node.parent.getComponent(GameManager).setTotalBeans(this._beans.length);
     }
 
     public removeBean(beanNode: Node) {
@@ -134,7 +134,7 @@ export class BeanManager extends Component {
 
             this._beans.splice(index, 1);
             
-            const gameManager = this.node.getComponent(GameManager) as any;
+            const gameManager = this.node.parent.getComponent(GameManager) as any;
             if (gameManager && beanType) {
                 gameManager.beanEaten(beanType, energy);
             } else {
@@ -147,7 +147,7 @@ export class BeanManager extends Component {
         const labelNode = new Node();
         const label = labelNode.addComponent(Label);
         label.string = `+${energy}`;
-        label.fontSize = 24;
+        label.fontSize = 30;
         label.color = Color.GREEN;
         
         this.node.addChild(labelNode);
