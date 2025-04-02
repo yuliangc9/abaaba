@@ -76,7 +76,11 @@ export class GameManager extends Component {
     public addToSlot(beanType: BeanType) {
         const emptyIndex = this.currentSlots.indexOf(null);
         if (emptyIndex === -1) {
+            if (this.player) {
             this.player.getComponent(PlayerController)?.setMovementEnabled(false);
+        } else {
+            console.warn('Player node is not assigned in GameManager');
+        }
             return false;
         }
 
@@ -97,25 +101,37 @@ export class GameManager extends Component {
     }
 
     private checkCombination() {
-        // 滑动窗口检查三连
-        for (let i = 0; i <= this.currentSlots.length - 3; i++) {
-            const types = new Set(this.currentSlots.slice(i, i + 3));
-            if (types.size === 1 && types.has(null) === false) {
-                this.clearSlots(i, i + 2);
-                break;
+        const typeCounts = new Map<BeanType, number>();
+        
+        // 统计所有槽位类型
+        this.currentSlots.forEach(type => {
+            if (type !== null) {
+                typeCounts.set(type, (typeCounts.get(type) || 0) + 1);
             }
-        }
+        });
+
+        // 遍历找到需要消除的类型
+        typeCounts.forEach((count, type) => {
+            if (count >= 3) {
+                this.clearSlotsByType(type);
+            }
+        });
     }
 
-    private clearSlots(start: number, end: number) {
-        this.currentSlots.fill(null, start, end + 1);
-        for (let i = start; i <= end; i++) {
-            const slotNode = this.slotNodes[i];
-            if (slotNode) {
-                const slotComp = slotNode.getComponent(SlotComponent);
-                slotComp?.playClearAnimation(() => {});
+    private clearSlotsByType(targetType: BeanType) {
+        // 清除所有匹配类型的槽位
+        this.currentSlots.forEach((type, index) => {
+            if (type === targetType) {
+                this.currentSlots[index] = null;
+                const slotNode = this.slotNodes[index];
+                if (slotNode) {
+                    const slotComp = slotNode.getComponent(SlotComponent);
+                    slotComp?.playClearAnimation(() => {});
+                }
             }
-        }
+        });
+        
+        // 恢复玩家移动
         this.player.getComponent(PlayerController)?.setMovementEnabled(true);
     }
 

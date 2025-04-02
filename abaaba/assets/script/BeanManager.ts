@@ -20,9 +20,16 @@ export class BeanManager extends Component {
     private _beans: Node[] = [];
     
     private beanConfigs = [
-        { type: BeanType.Energy, energy: 10, weight: 1 },
-        { type: BeanType.Shield, energy: 20, weight: 2 },
-        { type: BeanType.Speed, energy: 30, weight: 3 }
+        { type: BeanType.caomei, energy: 10, weight: 1 },
+        { type: BeanType.nangua, energy: 10, weight: 1 },
+        { type: BeanType.qiezi, energy: 10, weight: 1 },
+        { type: BeanType.tudou, energy: 20, weight: 1 },
+        { type: BeanType.wawacai, energy: 10, weight: 1 },
+        { type: BeanType.qingcai, energy: 10, weight: 1 },
+        { type: BeanType.mifan, energy: 20, weight: 1 },
+        { type: BeanType.bingqilin, energy: 40, weight: 1 },
+        { type: BeanType.baozi, energy: 40, weight: 1 },
+        { type: BeanType.huluobo, energy: 10, weight: 1 }
     ];
 
     start() {
@@ -31,7 +38,11 @@ export class BeanManager extends Component {
 
     private spawnBeans() {
         const playerPos = this.node.getChildByName('Cat')?.position;
-        const safeDistance = 60;
+        const safeDistance = 50;
+        
+        // 初始化10x10网格
+        const gridSize = 16;
+        const gridOccupied: boolean[][] = Array(gridSize).fill(null).map(() => Array(gridSize).fill(false));
         
         // 生成类型池（3的倍数）
         const typePool = this.generateTypePool();
@@ -72,9 +83,20 @@ export class BeanManager extends Component {
             
             while (!isValidPos && attempts < 10) {            
                 
+                // 获取随机未占用网格
+                let gridX, gridY;
+                do {
+                    gridX = Math.floor(Math.random() * gridSize);
+                    gridY = Math.floor(Math.random() * gridSize);
+                } while (gridOccupied[gridX][gridY]);
+                gridOccupied[gridX][gridY] = true;
+
+                // 转换网格坐标为世界坐标
+                const gridWidth = (maxX - minX) / gridSize;
+                const gridHeight = (maxY - minY) / gridSize;
                 const newPos = new Vec3(
-                    minX + Math.random() * (maxX - minX),
-                    minY + Math.random() * (maxY - minY),
+                    minX + gridX * gridWidth + gridWidth/2,
+                    minY + gridY * gridHeight + gridHeight/2,
                     0
                 );
                 
@@ -104,7 +126,11 @@ export class BeanManager extends Component {
             this._beans.splice(index, 1);
             
             const gameManager = this.node.getComponent(GameManager) as any;
-            if (beanType) gameManager.beanEaten(beanType, energy);
+            if (gameManager && beanType) {
+                gameManager.beanEaten(beanType, energy);
+            } else {
+                console.error('GameManager component not found in BeanManager');
+            }
         }
     }
 
@@ -119,7 +145,7 @@ export class BeanManager extends Component {
 
     private checkSafePosition(pos: Vec3, playerPos: Vec3, minDistance: number): boolean {
         // 检查玩家距离
-        if (pos.subtract(playerPos).length() < minDistance) return false;
+        if (pos.subtract(playerPos).length() < 150) return false;
         
         // 检查已有豆豆距离
         return this._beans.every(bean => {

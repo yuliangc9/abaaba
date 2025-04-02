@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Vec3, input, Input, Vec2, Collider, Collider2D, ICollisionEvent, BoxCollider2D, Contact2DType, IPhysics2DContact } from 'cc';
+import { _decorator, Component, Node, Vec3, input, Input, Vec2, Collider, Collider2D, Contact2DType, math } from 'cc';
 import { PhysicsSystem2D } from 'cc';
 import { Bean } from './Bean'; // 请根据实际路径修改
 const { ccclass, property } = _decorator;
@@ -15,7 +15,7 @@ export class PlayerController extends Component {
     map: Node = null!;
     
     @property
-    moveSpeed = 200;
+    moveSpeed = 100;
     
     @property
     moveCostPerUnit = 0.1;
@@ -55,9 +55,27 @@ export class PlayerController extends Component {
         }
     }
 
+    private _targetAngle = 0;
+    private _currentAngle = 0;
+    private _rotationSpeed = 20;
+
     update(deltaTime: number) {
         const direction = this._joystickComp.direction;
         const moveDelta = new Vec3(direction.x * this.moveSpeed * deltaTime, direction.y * this.moveSpeed * deltaTime, 0);
+        
+        // 计算目标角度（弧度转角度，并调整初始方向）
+        if (!direction.equals(Vec2.ZERO)) {
+            this._targetAngle = Math.atan2(direction.y, direction.x) * 180 / Math.PI - 90;
+        }
+        
+        // 添加角度差值函数
+        function lerp(a: number, b: number, t: number) {
+          return a + (b - a) * Math.min(t, 1);
+        }
+        
+        // 平滑旋转过渡
+        this._currentAngle = lerp(this._currentAngle, this._targetAngle, deltaTime * this._rotationSpeed);
+        this.node.angle = this._targetAngle;
         
         // 累计移动距离
         this._accumulatedDistance += moveDelta.length();

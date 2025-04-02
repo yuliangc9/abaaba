@@ -79,8 +79,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 40,
-      "height": 40
+      "width": 60,
+      "height": 60
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -116,7 +116,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "f12a23c4-b924-4322-a260-3d982428f1e8@f9941",
+      "__uuid__": "369801d3-ec55-43e2-af5a-9ca811016a5e@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -242,16 +242,44 @@
       "__id__": 9
     },
     "energyValue": 10,
-    "energySprite": {
-      "__uuid__": "45828f25-b50d-4c52-a591-e19491a62b8c@f9941",
+    "caomei": {
+      "__uuid__": "0850b0d5-c40b-4c08-9de8-1bb2c2750674@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
-    "speedSprite": {
-      "__uuid__": "158e7e52-3220-4cd7-9694-713e0e6e8278@f9941",
+    "tudou": {
+      "__uuid__": "275ef568-c4ae-4eac-9904-a0e4670efc98@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
-    "shieldSprite": {
-      "__uuid__": "b730527c-3233-41c2-aaf7-7cdab58f9749@f9941",
+    "nangua": {
+      "__uuid__": "bc66c98d-a19f-4f46-938a-a379b7be6e52@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "qiezi": {
+      "__uuid__": "8f34f372-ebda-4de1-8dad-1397f448eaf2@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "huluobo": {
+      "__uuid__": "369801d3-ec55-43e2-af5a-9ca811016a5e@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "bingqilin": {
+      "__uuid__": "f11fc34f-8fce-4920-9f54-eace19272926@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "wawacai": {
+      "__uuid__": "1b70a5bc-d557-4bb2-a7c2-ad4275b23904@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "qingcai": {
+      "__uuid__": "5c75c346-3373-4bfc-9a0c-c00357e5eb8b@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "baozi": {
+      "__uuid__": "91c31eab-d360-44b5-9ab8-595bc3bb195f@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "mifan": {
+      "__uuid__": "3027ed34-3df1-4eef-b122-026f430d299d@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_id": ""
