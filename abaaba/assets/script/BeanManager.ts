@@ -3,7 +3,7 @@ const { ccclass, property } = _decorator;
 import { Bean, BeanType } from './Bean';
 import { GameManager } from './GameManager';
 import { Sprite } from 'cc';
-import { _decorator, Component, Prefab, Node, instantiate, Vec3, CCInteger, Collider2D, PolygonCollider2D, UITransform } from 'cc';
+import { _decorator, Component, Prefab, Node, instantiate, Vec3, CCInteger, Collider2D, PolygonCollider2D, UITransform, Tween, Label, Color } from 'cc';
 import { Size } from 'cc';
 import { Vec2 } from 'cc';
 
@@ -118,11 +118,20 @@ export class BeanManager extends Component {
     }
 
     public removeBean(beanNode: Node) {
-        const energy = beanNode.getComponent(Bean)?.energyValue;
+        const energy = beanNode.getComponent(Bean)?.getEnergy();
         const index = this._beans.indexOf(beanNode);
         if (index !== -1) {
             const beanType = beanNode.getComponent(Bean)?.type;
-            beanNode.destroy();
+            
+            // 执行缩小动画
+            new Tween(beanNode)
+                .to(0.3, { scale: new Vec3(0.1, 0.1, 1) }, { easing: 'sineOut' })
+                .call(() => {
+                    beanNode.destroy();
+                    this.showEnergyLabel(beanNode.position, energy);
+                })
+                .start();
+
             this._beans.splice(index, 1);
             
             const gameManager = this.node.getComponent(GameManager) as any;
@@ -132,6 +141,26 @@ export class BeanManager extends Component {
                 console.error('GameManager component not found in BeanManager');
             }
         }
+    }
+
+    private showEnergyLabel(position: Vec3, energy: number) {
+        const labelNode = new Node();
+        const label = labelNode.addComponent(Label);
+        label.string = `+${energy}`;
+        label.fontSize = 24;
+        label.color = Color.GREEN;
+        
+        this.node.addChild(labelNode);
+        labelNode.setPosition(position);
+
+        
+        // 执行上漂渐隐动画
+        new Tween(labelNode)
+            .to(0.8, { 
+                position: new Vec3(position.x, position.y + 80, 0)
+            })
+            .call(() => labelNode.destroy())
+            .start();
     }
 
     private generateTypePool(): any[] {

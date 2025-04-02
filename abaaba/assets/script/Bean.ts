@@ -21,7 +21,11 @@ export class Bean extends Component {
     public type: BeanType = BeanType.mifan;
 
     @property
-    public energyValue: number = 10;
+    private _energyValue: number = 10;
+
+    public getEnergy() {
+        return this._energyValue;
+    }
 
     @property({ type: SpriteFrame })
     public caomei: SpriteFrame = null!;
@@ -80,7 +84,7 @@ export class Bean extends Component {
 
     setType(type: BeanType, energyValue: number) {
         this.type = type;
-        this.energyValue = energyValue;
+        this._energyValue = energyValue;
         const sprite = this.getComponent(Sprite);
         if (sprite) {
             sprite.spriteFrame = this.getCurrentSprite();
