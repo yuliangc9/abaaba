@@ -59,6 +59,13 @@
             background-size: cover;
         }
 
+        .panda1 {
+            width: 30px;
+            height: 30px;
+            background-image: url('./tuboshu1.gif');
+            background-size: cover;
+        }
+
         .food {
             width: 30px;
             height: 30px;
@@ -66,11 +73,32 @@
         }
 
         #bean-boxes {
-            display: flex;
-            margin-top: 20px;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #bean-boxes1 {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            flex-direction: column;
+            gap: 10px;
         }
 
         .bean-box {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            margin: 0 5px;
+            background-size: cover;
+        }
+
+        .bean-box1 {
             width: 30px;
             height: 30px;
             border: 1px solid #ccc;
@@ -93,6 +121,13 @@
             position: absolute;
             top: 20px;
             right: 20px;
+            font-size: 24px;
+        }
+
+        #energy-display1 {
+            position: absolute;
+            top: 20px;
+            left: 20px;
             font-size: 24px;
         }
 
@@ -165,6 +200,7 @@
         <button id="start-button">开始游戏</button>
     </div>
     <div id="energy-display">能量值: 1</div>
+    <div id="energy-display1">能量值: 1</div>
     <div id="game-board"></div>
     <div id="bean-boxes">
         <div class="bean-box"></div>
@@ -172,6 +208,15 @@
         <div class="bean-box"></div>
         <div class="bean-box"></div>
         <div class="bean-box"></div>
+        <div class="bean-box"></div>
+    </div>
+    <div id="bean-boxes1">
+        <div class="bean-box1"></div>
+        <div class="bean-box1"></div>
+        <div class="bean-box1"></div>
+        <div class="bean-box1"></div>
+        <div class="bean-box1"></div>
+        <div class="bean-box1"></div>
     </div>
     <div id="message"></div>
     <button id="restart-button" style="display: none;">重新开始</button>
@@ -187,16 +232,22 @@
         const startButton = document.getElementById('start-button');
         const board = document.getElementById('game-board');
         const beanBoxes = document.querySelectorAll('.bean-box');
+        const beanBoxes1 = document.querySelectorAll('.bean-box1');
         const message = document.getElementById('message');
         const restartButton = document.getElementById('restart-button');
         const energyDisplay = document.getElementById('energy-display');
+        const energyDisplay1 = document.getElementById('energy-display1');
         const rows = 10;
         const cols = 10;
-        let pacmanX = Math.floor(cols / 2);
-        let pacmanY = Math.floor(rows / 2);
+        let pacmanX = Math.floor(cols - 2);
+        let pacmanY = Math.floor(rows - 2);
+        let pacmanX1 = Math.floor(1);
+        let pacmanY1 = Math.floor(1);
         let beans = [];
         let eatenBeans = [];
+        let eatenBeans1 = [];
         let energy = 1; // 初始能量值
+        let energy1 = 1; // 初始能量值
         const foods = [
             { name: 'carrot', image: './apple.png', energy: 3 },
             { name: 'bamboo', image: './baicai.png', energy: 3 },
@@ -204,13 +255,13 @@
             { name: 'apple', image: './caomei.png', energy: 3 },
             { name: 'banana', image: './banana.png', energy: 3 },
             { name: 'strawberry', image: './guozhi.png', energy: 3 },
-            { name: 'grape', image: './huluobo.png', energy: 4 },
-            { name: 'watermelon', image: './lanmei.png', energy: 4 },
-            { name: 'pear', image: './mangguo.png', energy: 4 },
-            { name: 'kiwi', image: './mihoutao.png', energy: 4 },
-            { name: 'lemon', image: './shanzhu.png', energy: 4 },
-            { name: 'cherry', image: './tudou.png', energy: 4 },
-            { name: 'orange', image: './xigua.png', energy: 4 }
+            { name: 'grape', image: './huluobo.png', energy: 3 },
+            { name: 'watermelon', image: './lanmei.png', energy: 3 },
+            { name: 'pear', image: './mangguo.png', energy: 3 },
+            { name: 'kiwi', image: './mihoutao.png', energy: 3 },
+            { name: 'lemon', image: './shanzhu.png', energy: 3 },
+            { name: 'cherry', image: './tudou.png', energy: 3 },
+            { name: 'orange', image: './xigua.png', energy: 3 }
         ];
         const beanCountPerColor = 3;
 
@@ -229,7 +280,7 @@
                     cell.dataset.x = x;
                     cell.dataset.y = y;
                     board.appendChild(cell);
-                    if (x!== pacmanX || y!== pacmanY) {
+                    if ((x!== pacmanX || y!== pacmanY) &&( x!== pacmanX1 || y!== pacmanY1)) {
                         allCells.push({ x, y, cell });
                     }
                 }
@@ -256,6 +307,9 @@
 
             const pacmanCell = document.querySelector(`[data-x="${pacmanX}"][data-y="${pacmanY}"]`);
             pacmanCell.classList.add('panda');
+
+            const pacmanCell1 = document.querySelector(`[data-x="${pacmanX1}"][data-y="${pacmanY1}"]`);
+            pacmanCell1.classList.add('panda1');
         }
 
         function shuffleArray(array) {
@@ -279,7 +333,6 @@
                     pacmanX = newX;
                     pacmanY = newY;
                     newCell.classList.add('panda');
-                    energy--; // 移动消耗能量
                     updateEnergyDisplay();
                     if (food) {
                         const bean = beans.find(b => b.x === newX && b.y === newY);
@@ -293,8 +346,37 @@
             }
         }
 
+        function movePacman1(dx, dy) {
+            if (energy <= 0) return; // 能量值为0时无法移动
+            const newX = pacmanX1 + dx;
+            const newY = pacmanY1 + dy;
+            if (newX >= 0 && newX < cols && newY >= 0 && newY < rows) {
+                const newCell = document.querySelector(`[data-x="${newX}"][data-y="${newY}"]`);
+                const food = newCell.querySelector('.food');
+                if (!food || canEatBean1()) {
+                    const currentCell = document.querySelector(`[data-x="${pacmanX1}"][data-y="${pacmanY1}"]`);
+                    currentCell.classList.remove('panda1');
+                    pacmanX1 = newX;
+                    pacmanY1 = newY;
+                    newCell.classList.add('panda1');
+                    updateEnergyDisplay1();
+                    if (food) {
+                        const bean = beans.find(b => b.x === newX && b.y === newY);
+                        const foodName = bean.food;
+                        eatBean1(foodName, bean.energy);
+                        newCell.removeChild(food);
+                        beans = beans.filter(b => b.x!== newX || b.y!== newY);
+                        checkWin();
+                    }
+                }
+            }
+        }
+
         function canEatBean() {
             return eatenBeans.length < beanBoxes.length;
+        }
+        function canEatBean1() {
+            return eatenBeans1.length < beanBoxes1.length;
         }
 
         function eatBean(foodName, foodEnergy) {
@@ -305,6 +387,15 @@
             energy += foodEnergy; // 累加能量值
             updateEnergyDisplay();
             checkThreeSameColor();
+        }
+        function eatBean1(foodName, foodEnergy) {
+            eatenBeans1.push(foodName);
+            const emptyBox = Array.from(beanBoxes1).find(box =>!box.style.backgroundImage);
+            const foodImage = foods.find(f => f.name === foodName).image;
+            emptyBox.style.backgroundImage = `url('${foodImage}')`;
+            energy1 += foodEnergy; // 累加能量值
+            updateEnergyDisplay1();
+            checkThreeSameColor1();
         }
 
         function checkThreeSameColor() {
@@ -348,6 +439,41 @@
             //         generateNewFood();
             //     }
             // }
+        }
+        function checkThreeSameColor1() {
+            const foodCount = {};
+            eatenBeans1.forEach(food => {
+                foodCount[food] = (foodCount[food] || 0) + 1;
+            });
+
+            let hasRemoved = false;
+            for (const food in foodCount) {
+                if (foodCount[food] === 3) {
+                    // 清除 eatenBeans 中的相同食物
+                    eatenBeans1 = eatenBeans1.filter(f => f!== food);
+
+                    // 闪烁动画
+                    const boxesToRemove = [];
+                    beanBoxes1.forEach(box => {
+                        const imageUrl = box.style.backgroundImage.replace(/url\(['"]?([^'"]+)['"]?\)/, '$1');
+                        const foundFood = foods.find(f => f.image === imageUrl);
+                        if (foundFood && foundFood.name === food) {
+                            boxesToRemove.push(box);
+                            box.classList.add('blink');
+                        }
+                    });
+
+                    // 等待动画完成后清除
+                    setTimeout(() => {
+                        boxesToRemove.forEach(box => {
+                            box.style.backgroundImage = '';
+                            box.classList.remove('blink');
+                        });
+                    }, 1000);
+
+                    hasRemoved = true;
+                }
+            }
         }
 
         // 移除 generateNewFood 函数
@@ -408,6 +534,9 @@
         function updateEnergyDisplay() {
             energyDisplay.textContent = `能量值: ${energy}`;
         }
+        function updateEnergyDisplay1() {
+            energyDisplay1.textContent = `能量值: ${energy1}`;
+        }
 
         document.addEventListener('keydown', function (event) {
             switch (event.key) {
@@ -422,6 +551,18 @@
                     break;
                 case 'ArrowRight':
                     movePacman(1, 0);
+                    break;
+                case 'w':
+                    movePacman1(0, -1);
+                    break;
+                case 's':
+                    movePacman1(0, 1);
+                    break;
+                case 'a':
+                    movePacman1(-1, 0);
+                    break;
+                case 'd':
+                    movePacman1(1, 0);
                     break;
             }
         });
@@ -450,4 +591,4 @@
     </script>
 </body>
 
-</html>    
+</html>
