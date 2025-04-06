@@ -68,9 +68,9 @@ export class Beans extends Component {
     console.log('removeBean', pos);
     const bean = Common.getBeanAt(pos.row, pos.col);
     if (bean) {
-      bean.destroy();
+      //bean.destroy(); // 在player的三消逻辑中删除bean
       Common.rmBeanAt(pos.row, pos.col);
-      this.player.addEnergy(bean.getComponent(Bean).getEnergy()); // 假设 Bean 组件有 getEnergy 方法来获取能量值
+      this.player.eat(bean); // 假设 Bean 组件有 getEnergy 方法来获取能量值
       return true;
     }
     return false;

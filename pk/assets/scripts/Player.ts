@@ -1,7 +1,8 @@
-import { _decorator, Component, Vec3, tween, EventTarget, UITransform } from 'cc';
+import { _decorator, Component, Node, tween, EventTarget, UITransform } from 'cc';
 import { Field } from './Field';
 import { Label } from 'cc';
 import { EventBus, Common } from './Common';
+import { Bean } from './Bean'; // 请根据实际路径调整导入语句
 const { ccclass, property } = _decorator;
 
 @ccclass('Player')
@@ -29,6 +30,9 @@ export class Player extends Component {
     @property(Label)
     energyLabel: Label = null!;
 
+    @property({ type: Node })
+    boxes: Node[] = [];
+
     private targetRow: number = 0;
     private targetCol: number = 0;
 
@@ -43,6 +47,10 @@ export class Player extends Component {
     }
 
     private checkTargetCell() {
+        if (this.isAllBoxFull()) {
+            this.pathQueue = [];
+            return;
+        }
         const path = this.calculatePath({ row: this.targetRow, col: this.targetCol});
         if (path.length > 0) {
             this.pathQueue = path;
@@ -119,11 +127,26 @@ export class Player extends Component {
             .start();
     }
 
-    public addEnergy(energy: number) {
+    public eat(bean: Node) {
+        const energy = bean.getComponent(Bean)?.getEnergy();
         this._totalEnergy += energy;
         if (this.energyLabel) {
             this.energyLabel.string = `能量: ${this._totalEnergy}`;
         }
+        
+        const targetBox = this.getAvailableBox();
+        if (targetBox) {
+            bean.setParent(targetBox);
+            bean.setPosition(0, 0);
+        }
+    }
+
+    private getAvailableBox(): Node | null {
+        return this.boxes.find(box => box.children.length === 0) || null;
+    }
+
+    private isAllBoxFull(): boolean {
+        return this.boxes.every(box => box.children.length > 0);
     }
 
     initPos() {
