@@ -1,4 +1,4 @@
-import { _decorator, Component, Vec3, tween, EventTarget } from 'cc';
+import { _decorator, Component, Vec3, tween, EventTarget, UITransform } from 'cc';
 import { Field } from './Field'; // 根据实际文件路径调整
 const { ccclass, property } = _decorator;
 
@@ -19,7 +19,7 @@ export class Player extends Component {
     private targetPosition: Vec3 = new Vec3();
 
     start() {
-        this.field.getComponent(Field).eventTarget.on('cell-clicked', this.onCellClicked, this);
+        this.field.eventTarget.on('cell-clicked', this.onCellClicked, this);
     }
 
     private onCellClicked(pos: { row: number; col: number }) {
@@ -36,7 +36,16 @@ export class Player extends Component {
     }
 
     onLoad() {
-        const field = this.field.getComponent(Field);
-        this.node.setPosition(field.getGridPosition(this.startRow, this.startCol));
+
+    }
+
+    initPos() {
+        const cellSize = this.field.cellSize;
+        
+        const playerUITrans = this.node.getComponent(UITransform) || this.node.addComponent(UITransform);
+        playerUITrans.width = cellSize;
+        playerUITrans.height = cellSize;
+        
+        this.node.setPosition(this.field.getGridPosition(this.startRow, this.startCol));
     }
 }

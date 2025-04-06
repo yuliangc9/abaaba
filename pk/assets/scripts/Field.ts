@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Color, EventTarget, Vec3, Sprite, UITransform, SpriteFrame, builtinResMgr } from 'cc';
 import { Texture2D } from 'cc';
+import { Player } from './Player';
 const { ccclass, property } = _decorator;
 
 @ccclass('Field')
@@ -10,7 +11,8 @@ export class Field extends Component {
     @property({ type: Number })
     gridColumns = 3;
 
-    
+    @property({ type: Player })
+    player: Player = null!;
 
     @property({ type: Color })
     colorA = new Color(150, 190, 170);
@@ -26,9 +28,16 @@ export class Field extends Component {
         this.generateGrid();
     }
 
+    private _cellSize: number = 0;
+
+    get cellSize() {
+        return this._cellSize;
+    }
+
     private generateGrid() {
         const uiTrans = this.node.getComponent(UITransform);
-        const cellSize = Math.min(uiTrans.width / this.gridColumns, uiTrans.height / this.gridRows);
+        this._cellSize = Math.min(uiTrans.width / this.gridColumns, uiTrans.height / this.gridRows);
+        const cellSize = this._cellSize;
         const startX = -(this.gridColumns * cellSize) / 2;
         const startY = -(this.gridRows * cellSize) / 2;
 
@@ -75,11 +84,12 @@ export class Field extends Component {
                 this.gridMap[row][col] = cell;
             }
         }
+        this.player.initPos();
     }
 
     getGridPosition(row: number, col: number): Vec3 {
         const uiTrans = this.node.getComponent(UITransform);
-        const cellSize = Math.min(uiTrans.width / this.gridColumns, uiTrans.height / this.gridRows);
+        const cellSize = this._cellSize;
         const startX = -(this.gridColumns * cellSize) / 2;
         const startY = -(this.gridRows * cellSize) / 2;
         return new Vec3(
