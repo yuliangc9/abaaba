@@ -1,18 +1,23 @@
 import { _decorator, Component, Node, Color, EventTarget, Vec3, Sprite, UITransform, SpriteFrame, builtinResMgr } from 'cc';
 import { Texture2D } from 'cc';
-import { Player } from './Player';
 const { ccclass, property } = _decorator;
 
 @ccclass('Field')
 export class Field extends Component {
+    getNeighbors(row: number, col: number): { row: number; col: number }[] {
+        const neighbors = [];
+        if (row > 0) neighbors.push({ row: row - 1, col });
+        if (row < this.gridRows - 1) neighbors.push({ row: row + 1, col });
+        if (col > 0) neighbors.push({ row, col: col - 1 });
+        if (col < this.gridColumns - 1) neighbors.push({ row, col: col + 1 });
+        return neighbors;
+    }
+
     @property({ type: Number })
     gridRows = 3;
 
     @property({ type: Number })
     gridColumns = 3;
-
-    @property({ type: Player })
-    player: Player = null!;
 
     @property({ type: Color })
     colorA = new Color(150, 190, 170);
@@ -34,9 +39,12 @@ export class Field extends Component {
         return this._cellSize;
     }
 
-    private generateGrid() {
+    onLoad() {
         const uiTrans = this.node.getComponent(UITransform);
         this._cellSize = Math.min(uiTrans.width / this.gridColumns, uiTrans.height / this.gridRows);
+    }
+
+    private generateGrid() {
         const cellSize = this._cellSize;
         const startX = -(this.gridColumns * cellSize) / 2;
         const startY = -(this.gridRows * cellSize) / 2;
@@ -77,14 +85,12 @@ export class Field extends Component {
 
                 // 添加点击事件
                 cell.on(Node.EventType.TOUCH_END, () => {
-                    console.log(`点击格子: 行 ${row}, 列 ${col}`);
                     this.eventTarget.emit('cell-clicked', { row, col });
                 });
 
                 this.gridMap[row][col] = cell;
             }
         }
-        this.player.initPos();
     }
 
     getGridPosition(row: number, col: number): Vec3 {
