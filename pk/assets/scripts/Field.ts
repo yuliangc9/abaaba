@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Color, EventTarget, Vec3, Sprite, UITransform, SpriteFrame, builtinResMgr } from 'cc';
 import { Texture2D } from 'cc';
+import { EventBus } from './Common';
 const { ccclass, property } = _decorator;
 
 @ccclass('Field')
@@ -26,8 +27,6 @@ export class Field extends Component {
     colorB = new Color(170, 210, 190);
 
     private gridMap: Node[][] = [];
-
-    public eventTarget = new EventTarget();
 
     start() {
         this.generateGrid();
@@ -85,7 +84,7 @@ export class Field extends Component {
 
                 // 添加点击事件
                 cell.on(Node.EventType.TOUCH_END, () => {
-                    this.eventTarget.emit('cell-clicked', { row, col });
+                    EventBus.emit('cell-clicked', { row, col });
                 });
 
                 this.gridMap[row][col] = cell;
@@ -104,4 +103,6 @@ export class Field extends Component {
             0
         );
     }
+
+    // 移除原有的豆豆管理方法
 }

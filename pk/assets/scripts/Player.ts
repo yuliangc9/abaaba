@@ -1,5 +1,7 @@
 import { _decorator, Component, Vec3, tween, EventTarget, UITransform } from 'cc';
-import { Field } from './Field'; // 根据实际文件路径调整
+import { Field } from './Field';
+import { Label } from 'cc';
+import { EventBus, Common } from './Common';
 const { ccclass, property } = _decorator;
 
 @ccclass('Player')
@@ -11,6 +13,7 @@ export class Player extends Component {
     private currentRow = 0;
     private currentCol = 0;
     private currentTween: any = null;
+    private _totalEnergy: number = 0;
     @property({ type: Number })
     moveDuration = 0.5;
 
@@ -23,18 +26,20 @@ export class Player extends Component {
     @property({ type: Number })
     startCol = 0;
 
+    @property(Label)
+    energyLabel: Label = null!;
+
     private targetRow: number = 0;
     private targetCol: number = 0;
 
     start() {
-        this.field.eventTarget.on('cell-clicked', this.onCellClicked, this);
+        EventBus.on('cell-clicked', this.onCellClicked, this);
         this.initPos();
     }
 
     private onCellClicked(pos: { row: number; col: number }) {
         this.targetRow = pos.row;
         this.targetCol = pos.col;
-        console.log(`点击格子: 行 ${pos.row}, 列 ${pos.col}`);
     }
 
     private checkTargetCell() {
@@ -62,6 +67,9 @@ export class Player extends Component {
             }
 
             for (const neighbor of this.field.getNeighbors(current.pos.row, current.pos.col)) {
+                    if (Common.getBeanAt(neighbor.row, neighbor.col) != null && (neighbor.row !== target.row || neighbor.col !== target.col)) {
+                        continue;
+                    }
                 if (!visited.has(`${neighbor.row},${neighbor.col}`)) {
                     queue.push({
                         pos: neighbor,
@@ -105,25 +113,21 @@ export class Player extends Component {
             .call(() => {
                 this.currentRow = row;
                 this.currentCol = col;
+                console.log(`移动到格子: 行 ${row}, 列 ${col}`);
+                EventBus.emit('player-come', { row, col });
             })
             .start();
     }
 
-    // private startMove() {
-    //     if (this.timer) {
-    //         clearInterval(this.timer);
-    //         this.pathQueue = [];
-    //     }
-    //         .to(this.moveDuration, { position: this.targetPosition })
-    //         .call(() => console.log('移动完成'))
-    //         .start();
-    // }
-
-    onLoad() {
-
+    public addEnergy(energy: number) {
+        this._totalEnergy += energy;
+        if (this.energyLabel) {
+            this.energyLabel.string = `能量: ${this._totalEnergy}`;
+        }
     }
 
     initPos() {
+        this._totalEnergy = 0;
         this.currentRow = this.startRow;
         this.currentCol = this.startCol;
         const cellSize = this.field.cellSize;
