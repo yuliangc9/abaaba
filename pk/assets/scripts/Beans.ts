@@ -16,6 +16,9 @@ export class Beans extends Component {
   @property({ type: Player })
   player: Player = null!;
 
+  @property({ type: Player })
+  opp: Player = null!;
+
   start() {
     this.init();
     EventBus.on('player-come', this.removeBean, this);
@@ -25,7 +28,8 @@ export class Beans extends Component {
     let rows = this.field.gridRows;
     let cols = this.field.gridColumns;
     let excludePositions: { row: number; col: number }[] = [
-      { row: this.player.startRow, col: this.player.startCol }
+      { row: this.player.startRow, col: this.player.startCol },
+      { row: this.opp.startRow, col: this.opp.startCol }
     ];
     Common.initBeansMap(rows, cols);
     this.generateBeans(rows, cols, excludePositions);
@@ -64,13 +68,13 @@ export class Beans extends Component {
     }
   }
 
-    removeBean(pos: { row: number; col: number }): boolean {
+    removeBean(pos: { row: number; col: number }, role: Player): boolean {
     console.log('removeBean', pos);
     const bean = Common.getBeanAt(pos.row, pos.col);
     if (bean) {
       //bean.destroy(); // 在player的三消逻辑中删除bean
       Common.rmBeanAt(pos.row, pos.col);
-      this.player.eat(bean); // 假设 Bean 组件有 getEnergy 方法来获取能量值
+      role.eat(bean); // 假设 Bean 组件有 getEnergy 方法来获取能量值
       return true;
     }
     return false;

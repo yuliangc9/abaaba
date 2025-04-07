@@ -122,7 +122,7 @@ export class Player extends Component {
                 this.currentRow = row;
                 this.currentCol = col;
                 console.log(`移动到格子: 行 ${row}, 列 ${col}`);
-                EventBus.emit('player-come', { row, col });
+                EventBus.emit('player-come', { row, col }, this);
             })
             .start();
     }
