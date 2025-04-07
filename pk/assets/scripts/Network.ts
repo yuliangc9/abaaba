@@ -18,12 +18,14 @@ export class NetworkManager {
   }
 
   constructor() {
+    console.log('WebSocket connecting to:', SERVER_ADDRESS);
     this.ws = new WebSocket(SERVER_ADDRESS);
     this.setupListeners();
   }
 
   private setupListeners() {
     this.ws.addEventListener('message', (event) => {
+      console.log('Received message:', event.data); // 打印接收到的消息，方便调试
       try {
         const message: NetworkMessage = JSON.parse(event.data);
         EventBus.emit('network-message', message);

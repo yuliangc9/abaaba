@@ -49,6 +49,7 @@ export class Player extends Component {
     }
 
     private handleNetworkConnected() {
+        console.log('network connected');
         NetworkManager.getInstance().send({
             type: 'init',
             data: {

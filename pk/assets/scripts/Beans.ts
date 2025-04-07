@@ -22,6 +22,7 @@ export class Beans extends Component {
 
   start() {
     this.init();
+    NetworkManager.getInstance();
     EventBus.on('player-come', this.removeBean, this);
   }
   
@@ -37,10 +38,11 @@ export class Beans extends Component {
     switch (msg.type) {
         case 'init':
             if (msg.data.isGuest) {
-              let excludePositions: { row: number; col: number }[] = [
+              const excludePositions: { row: number; col: number }[] = [
                 { row: this.player.startRow, col: this.player.startCol },
                 { row: this.field.gridRows - 1- msg.data.row, col: this.field.gridColumns - 1 - msg.data.col }
               ];
+
               this.generateBeans(this.field.gridRows, this.field.gridColumns, excludePositions, null);
             }
             break;
@@ -59,9 +61,16 @@ export class Beans extends Component {
     }
 
   private generateBeans(rows: number, cols: number, excludePositions: { row: number; col: number }[], initMap: string[][]|null) {
+    console.log('generateBeans', rows, cols, excludePositions, initMap);
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        if (!excludePositions.some(p => p.row === row && p.col === col) || !(initMap && initMap[row][col] !== '')) {
+        if (excludePositions.some(p => p.row === row && p.col === col)) {
+          continue;
+        }
+        if (initMap && initMap[row][col] == '') {
+          continue;
+        }
+        if (true) {
           const beanNode = instantiate(this.beanPrefab);
             // 修复方案：手动实现 Object.values 功能
             const types: BeanType[] = [];

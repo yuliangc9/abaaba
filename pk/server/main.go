@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -24,8 +25,8 @@ type ClickEvent struct {
 }
 
 type InitMessage struct {
-	Row int `json:"row"`
-	Col int `json:"col"`
+	Row     int  `json:"row"`
+	Col     int  `json:"col"`
 	IsGuest bool `json:"isGuest"`
 }
 
@@ -55,7 +56,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		log.Println("Upgrade error:", err)
 		return
 	}
-	defer conn.Close()
+	log.Printf("客户端连接 [地址=%s]", conn.RemoteAddr())
 
 	// 加入匹配队列
 	matchQueue <- conn
@@ -91,7 +92,10 @@ func handleRoom(room *GameRoom) {
 	// 处理房间消息
 	for _, player := range room.Players {
 		go func(p *websocket.Conn) {
-			defer p.Close()
+			defer func() {
+				log.Printf("客户端断开 [地址=%s]", p.RemoteAddr())
+				p.Close()
+			}()
 			for {
 				var msg map[string]interface{}
 				err := p.ReadJSON(&msg)
@@ -100,9 +104,10 @@ func handleRoom(room *GameRoom) {
 					return
 				}
 
+				log.Printf("收到消息 [客户端=%s] 类型: %s 内容: %+v", p.RemoteAddr(), msg["type"], msg)
 				switch msg["type"].(string) {
 				case "init":
-					event := msg["type"].(map[string]int)
+					event := msg["data"].(map[string]interface{})
 					if playersState[p].IsGuest {
 						event["isGuest"] = 1
 					}

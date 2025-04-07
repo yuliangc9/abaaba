@@ -12,10 +12,10 @@ export enum BeanType {
     huluobo = 'huluobo',
     lanmei = 'lanmei',
     mangguo = 'mangguo',
-    mihoutao = 'mihoutao',
-    shanzhu = 'shanzhu',
-    tudou = 'tudou',
-    xigua = 'xigua'
+    // mihoutao = 'mihoutao',
+    // shanzhu = 'shanzhu',
+    // tudou = 'tudou',
+    // xigua = 'xigua'
 }
 
 @ccclass('Bean')
@@ -89,14 +89,14 @@ export class Bean extends Component {
                 return this.lanmei;
             case BeanType.mangguo:
                 return this.mangguo;
-            case BeanType.mihoutao:
-                return this.mihoutao;
-            case BeanType.shanzhu:
-                return this.shanzhu;
-            case BeanType.tudou:
-                return this.tudou;
-            case BeanType.xigua:
-                return this.xigua;
+            // case BeanType.mihoutao:
+            //     return this.mihoutao;
+            // case BeanType.shanzhu:
+            //     return this.shanzhu;
+            // case BeanType.tudou:
+            //     return this.tudou;
+            // case BeanType.xigua:
+            //     return this.xigua;
         }
     }
 
