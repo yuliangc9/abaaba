@@ -1,8 +1,8 @@
-import { _decorator, Component, Node, tween, EventTarget, UITransform } from 'cc';
+import { _decorator, Component, Node, tween, Vec3, UITransform } from 'cc';
 import { Field } from './Field';
 import { Label } from 'cc';
 import { EventBus, Common } from './Common';
-import { Bean } from './Bean'; // 请根据实际路径调整导入语句
+import { Bean, BeanType } from './Bean'; // 请根据实际路径调整导入语句
 const { ccclass, property } = _decorator;
 
 @ccclass('Player')
@@ -127,6 +127,60 @@ export class Player extends Component {
             .start();
     }
 
+    private checkAndClearMatchingBeans() {
+        const typeCount = new Map<BeanType, number>();
+        const allBeans: Bean[] = [];
+
+        // 统计所有box中的bean类型
+        this.boxes.forEach(box => {
+            box.children.forEach(child => {
+                const bean = child.getComponent(Bean);
+                if (bean) {
+                    allBeans.push(bean);
+                    typeCount.set(bean.type, (typeCount.get(bean.type) || 0) + 1);
+                }
+            });
+        });
+
+        // 找出需要清除的类型
+        const clearTypes = Array.from(typeCount.entries())
+            .filter(([type, count]) => count >= 3)
+            .map(([type]) => type);
+
+        // 清除匹配的bean
+        clearTypes.forEach(type => {
+            let clearedCount = 0;
+            const toRemove: Bean[] = [];
+
+            // 收集前3个匹配的bean
+            allBeans.forEach(bean => {
+                if (clearedCount < 3 && bean.type === type) {
+                    toRemove.push(bean);
+                    clearedCount++;
+                }
+            });
+
+            // 执行清除操作
+            let doubleEnergy = 0;
+            toRemove.forEach(bean => {
+                doubleEnergy += bean.getEnergy();
+                // 从父节点移除并销毁
+                const parent = bean.node.parent;
+                if (parent) {
+                    parent.removeChild(bean.node);
+                    bean.node.destroy();
+                }
+            });
+            // 更新总能量（假设每个bean能量为1）
+            this._totalEnergy += doubleEnergy; 
+        });
+
+        // 更新能量显示
+        if (this.energyLabel) {
+            this.energyLabel.string = `能量: ${this._totalEnergy}`;
+        }
+    }
+
     public eat(bean: Node) {
         const energy = bean.getComponent(Bean)?.getEnergy();
         this._totalEnergy += energy;
@@ -135,9 +189,17 @@ export class Player extends Component {
         }
         
         const targetBox = this.getAvailableBox();
-        if (targetBox) {
+        if (targetBox) {            
             bean.setParent(targetBox);
-            bean.setPosition(0, 0);
+            let newPos = bean.position.clone().subtract(targetBox.position).add(new Vec3(0, 10, 0));
+            bean.setPosition(newPos);
+            let speed = newPos.length()/800;
+            tween(bean) 
+                .to(speed, { position: new Vec3(0,0,0) }, { easing: 'sineOut' })
+                .call(() => {
+                    this.checkAndClearMatchingBeans();  // 添加三消检查
+                })
+                .start();
         }
     }
 

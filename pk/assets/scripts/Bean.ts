@@ -1,4 +1,4 @@
-import { Sprite } from 'cc';
+import { Sprite, Vec3, tween } from 'cc';
 import { _decorator, Component, Node, SpriteFrame, UITransform } from 'cc';
 const { ccclass, property } = _decorator;
 
@@ -24,10 +24,10 @@ export class Bean extends Component {
     public type: BeanType = BeanType.apple;
 
     @property
-    private _energyValue: number = 1;
+    energyValue: number = 1;
 
     public getEnergy() {
-        return this._energyValue;
+        return this.energyValue;
     }
 
     @property({ type: SpriteFrame })
@@ -106,5 +106,18 @@ export class Bean extends Component {
         if (sprite) {
             sprite.spriteFrame = this.getCurrentSprite();
         }
+    }
+
+    onDestroy() {
+        // 播放爆炸动画, don't work
+        this.node.scale = new Vec3(1, 1, 1);
+        tween(this.node)
+            .to(0.1, { scale: new Vec3(1.5, 1.5, 1.5) })
+            .to(0.3, { 
+                scale: new Vec3(0, 0, 0)
+            }, { easing: 'sineOut' })
+            .call(() => {
+            })
+            .start();
     }
 }
