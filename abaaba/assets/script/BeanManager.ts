@@ -17,7 +17,11 @@ export class BeanManager extends Component {
     
     
 
-    private _beans: Node[] = [];
+    public _beans: Node[] = [];
+
+    public getBeans(): Node[] {
+        return this._beans;
+    }
     
     private beanConfigs = [
         { type: BeanType.caomei, energy: 10, weight: 1 },
@@ -37,13 +41,13 @@ export class BeanManager extends Component {
     }
 
     private spawnBeans() {
-        const playerPos = this.node.getChildByName('Cat')?.position;
-        const safeDistance = 50;
-        
-        // 初始化10x10网格
-        const gridSize = 16;
+        const gridSize = 9; // 改为9x9网格
         const gridOccupied: boolean[][] = Array(gridSize).fill(null).map(() => Array(gridSize).fill(false));
-        
+    
+        // 初始化玩家位置到中心格
+        const centerGrid = Math.floor(gridSize / 2);
+        this.node.parent.getChildByName('Cat')?.setPosition(this.convertGridToWorld(new Vec3(centerGrid, centerGrid, 0)));
+    
         // 生成类型池（3的倍数）
         const typePool = this.generateTypePool();
 
@@ -181,5 +185,28 @@ export class BeanManager extends Component {
             const res = bean.position.clone().subtract(pos).length() >= minDistance;
             return res;
         });
+    }
+    
+    // 添加豆豆位置查询方法
+    public getBeanPositions(): Vec3[] {
+        return this._beans.map(bean => this.convertWorldToGrid(bean.position));
+    }
+
+    private convertGridToWorld(gridPos: Vec3): Vec3 {
+        const gridWidth = (maxX - minX) / gridSize;
+        return new Vec3(
+            minX + gridPos.x * gridWidth + gridWidth/2,
+            minY + gridPos.y * gridWidth + gridWidth/2,
+            0
+        );
+    }
+
+    private convertWorldToGrid(worldPos: Vec3): Vec3 {
+        const gridWidth = (maxX - minX) / gridSize;
+        return new Vec3(
+            Math.floor((worldPos.x - minX) / gridWidth),
+            Math.floor((worldPos.y - minY) / gridWidth),
+            0
+        );
     }
 }
