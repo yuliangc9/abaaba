@@ -2,6 +2,7 @@ import { _decorator, Component, Node, tween, Vec3, UITransform } from 'cc';
 import { Field } from './Field';
 import { Label } from 'cc';
 import { EventBus, Common } from './Common';
+import { NetworkManager } from './Network';
 import { Bean, BeanType } from './Bean'; // 请根据实际路径调整导入语句
 const { ccclass, property } = _decorator;
 
@@ -33,17 +34,56 @@ export class Player extends Component {
     @property({ type: Node })
     boxes: Node[] = [];
 
+    @property({ type: Boolean })
+    isLocal: Boolean = true;
+
     private targetRow: number = 0;
     private targetCol: number = 0;
 
     start() {
-        EventBus.on('cell-clicked', this.onCellClicked, this);
-        this.initPos();
+        if (this.isLocal) {
+            this.initPos(this.startRow, this.startCol);
+            EventBus.on('network-connected', this.handleNetworkConnected, this);
+        }
+        EventBus.on('network-message', this.handleNetworkMessage, this);
+    }
+
+    private handleNetworkConnected() {
+        NetworkManager.getInstance().send({
+            type: 'init',
+            data: {
+                row: this.startRow,
+                col: this.startCol
+            }
+        });
+    }
+
+    private handleNetworkMessage(msg: any) {
+        switch (msg.type) {
+            case 'click':
+                if (this.isLocal) {
+                    return;
+                }
+                this.targetRow = this.field.gridRows - msg.data.row - 1;
+                this.targetCol = this.field.gridColumns - 1 - msg.data.col;
+                break;
+            case 'init':
+                if (this.isLocal) {
+                    EventBus.on('cell-clicked', this.onCellClicked, this);
+                } else {
+                    this.initPos(this.field.gridRows - 1- msg.data.row, this.field.gridColumns - 1 - msg.data.col);
+                }
+                break;
+        }
     }
 
     private onCellClicked(pos: { row: number; col: number }) {
         this.targetRow = pos.row;
         this.targetCol = pos.col;
+        
+        if (this.isLocal) {
+            NetworkManager.getInstance().sendClickEvent(pos);
+        }
     }
 
     private checkTargetCell() {
@@ -211,10 +251,10 @@ export class Player extends Component {
         return this.boxes.every(box => box.children.length > 0);
     }
 
-    initPos() {
+    initPos(row: number, col: number) {
         this._totalEnergy = 0;
-        this.currentRow = this.startRow;
-        this.currentCol = this.startCol;
+        this.currentRow = row;
+        this.currentCol = col;
         const cellSize = this.field.cellSize;
         
         const playerUITrans = this.node.getComponent(UITransform) || this.node.addComponent(UITransform);

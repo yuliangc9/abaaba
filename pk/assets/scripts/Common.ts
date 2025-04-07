@@ -31,4 +31,10 @@ export class Common {
     static getMap() {
         return Common.beansMap;
     }
+
+  static serializeBeansMap(): string[][] {
+    return Common.beansMap.map(row => 
+      row.map(bean => bean?.getComponent(Bean)?.type || '')
+    );
+  }
 }
